@@ -81,7 +81,7 @@ public class UserController {
     ResponseEntity<?> jwtLogin (@RequestBody JwtAuth jwtAuth, HttpServletResponse response){
         try{
             authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(jwtAuth.getUsername(),jwtAuth.getPassword()))
+                    new UsernamePasswordAuthenticationToken(jwtAuth.getUsername(),jwtAuth.getPassword()));
         }catch (Exception e){
             return  new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
