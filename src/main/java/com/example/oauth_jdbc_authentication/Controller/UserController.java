@@ -1,16 +1,34 @@
 package com.example.oauth_jdbc_authentication.Controller;
 
+import com.example.oauth_jdbc_authentication.Model.JwtAuth;
+import com.example.oauth_jdbc_authentication.jwt.JwtUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.security.Principal;
 
 @Controller
 public class UserController {
+    private final AuthenticationManager authenticationManager;
+    private final JwtUtils jwtUtils;
+
+    @Autowired
+    public UserController(AuthenticationManager authenticationManager, JwtUtils jwtUtils) {
+        this.authenticationManager = authenticationManager;
+        this.jwtUtils = jwtUtils;
+    }
 
     @GetMapping("/login")
     public String login(){
@@ -58,4 +76,16 @@ public class UserController {
         return principal;
     }
 
+    @PostMapping("/jwt/login")
+    public @ResponseBody
+    ResponseEntity<?> jwtLogin (@RequestBody JwtAuth jwtAuth, HttpServletResponse response){
+        try{
+            authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(jwtAuth.getUsername(),jwtAuth.getPassword()))
+        }catch (Exception e){
+            return  new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+        response.addHeader("Authorization", jwtUtils.generateToken(jwtAuth.getUsername()));
+        return  new ResponseEntity<>(HttpStatus.OK);
+    }
 }
